@@ -20,6 +20,7 @@
 #include "convert.h"
 #include "multihal.h"
 
+#include <time.h>
 #include <android-base/logging.h>
 
 #include <sys/stat.h>
@@ -55,10 +56,18 @@ static Result ResultFromStatus(status_t err) {
     }
 }
 
+static long millisec() {
+    timespec the_time;
+    clock_gettime(CLOCK_MONOTONIC, &the_time);
+    return the_time.tv_sec * 1000 + the_time.tv_nsec / 1000000;
+}
+
 Sensors::Sensors()
     : mInitCheck(NO_INIT),
       mSensorModule(nullptr),
-      mSensorDevice(nullptr) {
+      mSensorDevice(nullptr),
+      mAssumingProximityIsFar(false),
+      mTimeProximityEnabled(0) {
     status_t err = OK;
     if (UseMultiHal()) {
         mSensorModule = ::get_multi_hal_module_info();
@@ -152,6 +161,10 @@ Return<Result> Sensors::setOperationMode(OperationMode mode) {
 
 Return<Result> Sensors::activate(
         int32_t sensor_handle, bool enabled) {
+    if (sensor_handle == kSensorHandleProximity && enabled) {
+        mAssumingProximityIsFar = true;
+        mTimeProximityEnabled = millisec();
+    }
     return ResultFromStatus(
             mSensorDevice->activate(
                 reinterpret_cast<sensors_poll_device_t *>(mSensorDevice),
@@ -340,6 +353,15 @@ void Sensors::convertFromSensorEvents(
         Event *dst = &(*dstVec)[i];
 
         convertFromSensorEvent(src, dst);
+
+        if (dst->sensorHandle == kSensorHandleProximity
+                && mAssumingProximityIsFar && dst->u.scalar == 0) {
+                mAssumingProximityIsFar = false;
+            if (millisec() - mTimeProximityEnabled < 500) {
+                dst->u.scalar = 5;
+                LOG(INFO) << "Assuming proximity is far within 500ms";
+            }
+        }
     }
 }
 
