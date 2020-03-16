@@ -1,0 +1,24 @@
+cc_binary {
+    name: "android.hardware.sensors@1.0-service.m1882",
+    relative_install_path: "hw",
+    vendor: true,
+    init_rc: ["android.hardware.sensors@1.0-service.m1882.rc"],
+    srcs: [
+        "service.cpp",
+        "convert.cpp",
+        "Sensors.cpp",
+    ],
+    shared_libs: [
+        "liblog",
+        "libcutils",
+        "libhardware",
+        "libbase",
+        "libutils",
+        "libhidlbase",
+        "libhidltransport",
+        "android.hardware.sensors@1.0",
+    ],
+    static_libs: [
+        "multihal",
+    ],
+}

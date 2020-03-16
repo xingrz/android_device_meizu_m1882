@@ -1,0 +1,6 @@
+service vendor.sensors-hal-1-0-m1882 /vendor/bin/hw/android.hardware.sensors@1.0-service.m1882
+    class hal
+    user system
+    group system wakelock uhid
+    capabilities BLOCK_SUSPEND
+    rlimit rtprio 10 10

@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#define LOG_TAG "android.hardware.sensors@1.0-service.m1882"
+
+#include <android-base/logging.h>
+#include <hidl/HidlTransportSupport.h>
+#include <utils/Errors.h>
+
+#include "Sensors.h"
+
+// libhwbinder:
+using android::hardware::configureRpcThreadpool;
+using android::hardware::joinRpcThreadpool;
+
+// Generated HIDL files
+using android::hardware::sensors::V1_0::ISensors;
+using android::hardware::sensors::V1_0::implementation::Sensors;
+
+int main() {
+    android::sp<ISensors> service = new Sensors();
+
+    /* Sensors framework service needs at least two threads.
+     * One thread blocks on a "poll"
+     * The second thread is needed for all other HAL methods.
+     */
+    configureRpcThreadpool(2, true);
+
+    android::status_t status = service->registerAsService();
+
+    if (status != android::OK) {
+        LOG(ERROR) << "Cannot register Sensors HAL service";
+        return 1;
+    }
+
+    LOG(INFO) << "Sensors HAL Ready.";
+    joinRpcThreadpool();
+
+    // Under normal cases, execution will not reach this line.
+    LOG(ERROR) << "Sensors HAL failed to join thread pool.";
+    return 1;
+}
