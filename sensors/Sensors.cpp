@@ -161,7 +161,8 @@ Return<Result> Sensors::setOperationMode(OperationMode mode) {
 
 Return<Result> Sensors::activate(
         int32_t sensor_handle, bool enabled) {
-    if (sensor_handle == kSensorHandleProximity && enabled) {
+    if (enabled && (sensor_handle == kSensorHandleProximityWakeup
+            || sensor_handle == kSensorHandleProximity)) {
         mAssumingProximityIsFar = true;
         mTimeProximityEnabled = millisec();
     }
@@ -357,9 +358,12 @@ void Sensors::convertFromSensorEvents(
         if (dst->sensorHandle == kSensorHandleProximity
                 && mAssumingProximityIsFar && dst->u.scalar == 0) {
                 mAssumingProximityIsFar = false;
-            if (millisec() - mTimeProximityEnabled < 500) {
+            long time = millisec() - mTimeProximityEnabled;
+            if (time < 500) {
                 dst->u.scalar = 5;
-                LOG(INFO) << "Assuming proximity is far within 500ms";
+                LOG(INFO) << "Assuming proximity is far within " << time << " ms";
+            } else {
+                LOG(INFO) << "Trust proximity change as valid in " << time << " ms";
             }
         }
     }
