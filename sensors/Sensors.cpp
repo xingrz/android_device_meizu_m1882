@@ -62,18 +62,12 @@ static long millisec() {
     return the_time.tv_sec * 1000 + the_time.tv_nsec / 1000000;
 }
 
-static constexpr int32_t kSensorHandleProximityWakeup = 10;
-static constexpr int32_t kSensorHandleProximity = 11;
-
-static bool isProximity(int32_t sensor_handle) {
-    return sensor_handle == kSensorHandleProximityWakeup
-        || sensor_handle == kSensorHandleProximity;
-}
-
 Sensors::Sensors()
     : mInitCheck(NO_INIT),
       mSensorModule(nullptr),
       mSensorDevice(nullptr),
+      mSensorHandleProximityWakeup(-1),
+      mSensorHandleProximity(-1),
       mAssumingProximityIsFar(false),
       mTimeProximityEnabled(0) {
     status_t err = OK;
@@ -144,6 +138,12 @@ Return<void> Sensors::getSensorsList(getSensorsList_cb _hidl_cb) {
         SensorInfo *dst = &out[i];
 
         convertFromSensor(*src, dst);
+
+        if (dst->name == "proximity_wakeup") {
+            mSensorHandleProximityWakeup = dst->sensorHandle;
+        } else if (dst->name == "proximity") {
+            mSensorHandleProximity = dst->sensorHandle;
+        }
     }
 
     _hidl_cb(out);
@@ -375,6 +375,11 @@ void Sensors::convertFromSensorEvents(
             }
         }
     }
+}
+
+bool Sensors::isProximity(int32_t sensor_handle) {
+    return sensor_handle == mSensorHandleProximityWakeup
+        || sensor_handle == mSensorHandleProximity;
 }
 
 ISensors *HIDL_FETCH_ISensors(const char * /* hal */) {
