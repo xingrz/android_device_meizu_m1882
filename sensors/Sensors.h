@@ -69,8 +69,6 @@ private:
     sensors_poll_device_1_t *mSensorDevice;
     std::mutex mPollLock;
 
-    static constexpr int32_t kSensorHandleProximityWakeup = 10;
-    static constexpr int32_t kSensorHandleProximity = 11;
     bool mAssumingProximityIsFar;
     long mTimeProximityEnabled;
 

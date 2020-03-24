@@ -62,6 +62,14 @@ static long millisec() {
     return the_time.tv_sec * 1000 + the_time.tv_nsec / 1000000;
 }
 
+static constexpr int32_t kSensorHandleProximityWakeup = 10;
+static constexpr int32_t kSensorHandleProximity = 11;
+
+static bool isProximity(int32_t sensor_handle) {
+    return sensor_handle == kSensorHandleProximityWakeup
+        || sensor_handle == kSensorHandleProximity;
+}
+
 Sensors::Sensors()
     : mInitCheck(NO_INIT),
       mSensorModule(nullptr),
@@ -161,8 +169,8 @@ Return<Result> Sensors::setOperationMode(OperationMode mode) {
 
 Return<Result> Sensors::activate(
         int32_t sensor_handle, bool enabled) {
-    if (enabled && (sensor_handle == kSensorHandleProximityWakeup
-            || sensor_handle == kSensorHandleProximity)) {
+    if (enabled && isProximity(sensor_handle)) {
+        LOG(INFO) << "Proximity " << sensor_handle << " enabled: " << enabled;
         mAssumingProximityIsFar = true;
         mTimeProximityEnabled = millisec();
     }
@@ -355,8 +363,8 @@ void Sensors::convertFromSensorEvents(
 
         convertFromSensorEvent(src, dst);
 
-        if (dst->sensorHandle == kSensorHandleProximity
-                && mAssumingProximityIsFar && dst->u.scalar == 0) {
+        if (isProximity(dst->sensorHandle) && mAssumingProximityIsFar
+                && dst->u.scalar == 0) {
                 mAssumingProximityIsFar = false;
             long time = millisec() - mTimeProximityEnabled;
             if (time < 500) {
