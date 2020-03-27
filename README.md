@@ -3,6 +3,8 @@ Copyright (C) 2020 - The MoKee Open Source Project
 Device configuration for Meizu 16th
 ==============
 
+[![][installs]][download]
+
 The Meizu 16th (codenamed _"M1882"_) are high-end smartphones from Meizu.
 
 Meizu 16th was announced and released in August 2018.
@@ -26,3 +28,6 @@ Meizu 16th was announced and released in August 2018.
 ## Device picture
 
 ![Meizu 16th](https://www3.res.meizu.com/static/cn/16/spec/images/mz16_2f7d5f2.png "Meizu 16th")
+
+[installs]: https://img.shields.io/badge/dynamic/json?style=flat-square&color=1976f2&label=MoKee&query=%24.count&suffix=%20installs&url=https%3A%2F%2Fstats-api.xingrz.me%2Fdata%3Fdevice%3Dm1882
+[download]: https://rom.mk/m1882
